@@ -1,4 +1,4 @@
-var = 10 ;
+var = 50 ;
 nsamp = 16 ;
 x = randi([0 1],var,1);
 t1 = [1:var*nsamp];
