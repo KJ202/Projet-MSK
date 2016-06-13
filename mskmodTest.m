@@ -1,11 +1,10 @@
-<<<<<<< HEAD
+
 var = 50 ;
-nsamp = 16 ;
-=======
+nsamp = 16;
 %% Paramètres initiaux
 var = 10 ; % NB de symboles à transmettre
 nsamp = 32 ;
->>>>>>> cf4a64f2d534ddad5dc4a508beaa2f60cba75ee5
+
 x = randi([0 1],var,1);
 t1 = [1:var*nsamp];
 t2 = [1:var];
