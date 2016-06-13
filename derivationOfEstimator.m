@@ -13,7 +13,7 @@ A = matrixing(z,lengthSignal);
 lengthColumn = size(A(:,1));
 
 for k=1:lengthColumn(1)
-    for i=1:8
+    for i=1:16
         A(k,i)=squarred(A(k,i));
         A(k,i)=A(k,i)*(-1)^(k+1);
     end        
@@ -32,9 +32,9 @@ function h = matrixing(z,l)
 %@i the sample
 
 A=[];
-for k=1:(l(1)/8)
-    for i=1:8
-        A(k,i)=z((k-1)*8+i);
+for k=1:(l(1)/16)
+    for i=1:16
+        A(k,i)=z((k-1)*16+i);
     end;
 end
 h=A;
