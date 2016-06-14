@@ -1,38 +1,35 @@
-
-var = 50 ;
-nsamp = 16;
 %% Param√®tres initiaux
-var = 10 ; % NB de symboles √† transmettre
-nsamp = 32 ;
+nbSymbols= 10  ; % NB de symboles √† transmettre
 
-x = randi([0 1],var,1);
-t1 = [1:var*nsamp];
-t2 = [1:var];
-y = mskmod(x,nsamp,[],pi/2);
 
+nsamp = 32 ; %nombre d'Èchantillons pour un bit dans le channel I et Q. Dans chaque channel, un bit sera codÈ sur 2*nsamp Èchantillons
+symbols = randi([0 1],nbSymbols,1);
 
 
 %% Modulation
 % G√©n√©ration d'un sinus et ajout d'un bruit blanc Gaussien
 
-fp = 150;      % fr√©quence de la porteuse
-fe = 1000;      % Fr√©quence d'√©chantillonnage
-N = var*nsamp;       % Nombre de points de la s√©quence
+fp = 100;      % fr√©quence de la porteuse 
+fm = 20;       % nombre de bit par secondes par channel
+fe = 1000;      % Fr√©quence des Èchantillons: On a 1000 echantillons par secondes
+N = (var/2)*(fe/fm);       % Nombre d'Èchantillons dans chaque voie
 
 % Axe des temps
 t = (1:N)/fe;
 
+% GÈnÈration des cosinus et sinus surrÈlevÈs
+rootRaised = mskmod(symbols,fe/fm/2,[],pi/2);
+
 % G√©n√©ration du sinus pour les coeffs
-%sinCoeff = sin(2*pi/4* fe *t)       % d√©pend du bits/sec
 
 sinPorteuse = sin(2*pi* fp *t);
 cosPorteuse = cos(2*pi* fp *t);
 
-partI = sinPorteuse .* imag(y)' ;   % multiplication element par element
-partQ = cosPorteuse .* real(y)' ;
+partI = sinPorteuse .* imag(rootRaised)' ;   % multiplication element par element
+partQ = cosPorteuse .* real(rootRaised)' ;
 
 signal = partI + partQ ;
-
+%s=awgn(signal,10);
 %% D√©modulation
 
 demodI = signal .* sinPorteuse ;
@@ -43,39 +40,52 @@ resI = filter(b,1,demodI);
 resQ = filter(b,1,demodQ);
 
 resSum = resQ + j*resI ;
-z = mskdemod(resSum,nsamp,[],pi/2);
+%z = mskdemod(resSum,nsamp,[],pi/2);
+
+%% FFT
+
+spectre = abs(fft(cosPorteuse));
 
 %% Plot
 
 subplot(421);
-plot(t2,x,'bs');
+plot(t2,symbols,'bs');
 xlabel('Symboles : bits input')
 
+subplot(424);
+plot(t, cosPorteuse);
+xlabel('cosPorteuse')
+
 subplot(422);
-plot(real(y));
-xlabel('Partie imaginaire : coeff bk')
+plot(t, real(rootRaised));
+xlabel('Partie rÈelle : coeff ak ?')
 
 subplot(423);
-plot(cosPorteuse);
-xlabel('Porteuse')
-
-subplot(424);
-plot(partQ);
+plot(t, partQ);
 xlabel('partie Q modul√©e')
 
 subplot(425);
-plot(signal);
+plot(t, signal);
 xlabel('Signal modul√©')
 
+
+L = N ;
+f = fe*(0:(L/2))/L;
+fft1Signal = abs(fft(cosPorteuse));
+fft2Signal = fft1Signal(1:L/2+1);
+
+fft1PartQ = abs(fft(partQ));
+fft2PartQ = fft1Signal(1:L/2+1);
+
 subplot(426);
-plot(demodQ);
-xlabel('Partie I d√©modul√©e avant filtre')
+plot(f,fft2PartQ);
+xlabel('fft de partQ')
 
 subplot(427);
-plot(resQ);
-xlabel('Part I d√©modul√©e apr√®s filtre')
+plot(f,fft2Signal);
+xlabel('fft du signal modulÈ')
 
 subplot(428);
-plot(z);
-xlabel('Symboles re√ßus')
+plot(z,'bs');
+xlabel('Symboles reÁus')
 
