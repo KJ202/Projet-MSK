@@ -1,16 +1,16 @@
 %% ParamÃ¨tres initiaux
-nbSymbols= 20  ; % NB de symboles Ã  transmettre
+nbSymbols= 30  ; % NB de symboles Ã  transmettre
 
 symbols = randi([0 1],nbSymbols,1); %générations des symboles aléatoires
 
-fe = 1000;      % FrÃ©quence des échantillons: On a 1000 echantillons par secondes
+fe = 10000;      % FrÃ©quence des échantillons: On a 1000 echantillons par secondes
 
 %% Modulation
 % GÃ©nÃ©ration d'un sinus et ajout d'un bruit blanc Gaussien
 
 %Paramètres de la modulation
-fc = 100;% frÃ©quence centrale 
-fd = 20; %fréquence de déviation
+fc = 500;% frÃ©quence centrale 
+fd = 100; %fréquence de déviation
 
 %Paramètres de calculs
 fm = 2*fd;       % nombre de bit par secondes par channel
@@ -52,38 +52,60 @@ spectre = abs(fft(cosPorteuse));
 
 subplot(421);
 plot(symbols,'bs');
-xlabel('Symboles : bits input')
-
-subplot(424);
-plot(t, cosPorteuse);
-xlabel('cosPorteuse')
+title('Generated symbols')
 
 subplot(422);
-plot(t, real(rootRaised));
-xlabel('Partie réelle : coeff ak ?')
+plot(t, signal);
+title('Signal modulé')
 
 subplot(423);
-plot(t, partQ);
-xlabel('partie Q modulÃ©e')
+plot(t, real(rootRaised));
+title('Partie réelle (Q)')
+
+subplot(424);
+plot(t, imag(rootRaised));
+title('Partie imaginaire (I)')
 
 subplot(425);
-plot(t, signal);
-xlabel('Signal modulÃ©')
-
-
-L = N ;
-f = fe*(0:(L/2))/L;
-fft1Signal = abs(fft(signal));
-fft2Signal = fft1Signal(1:L/2+1);
-
-fft1PartQ = abs(fft(partQ));
-fft2PartQ = fft1PartQ(1:L/2+1);
+plot(t, cosPorteuse);
+title('cosPorteuse')
 
 subplot(426);
-plot(f,fft2PartQ);
-xlabel('fft de partQ')
+plot(t, sinPorteuse);
+title('sinPorteuse')
 
 subplot(427);
-plot(f,fft2Signal);
-xlabel('fft du signal modulé')
+plot(t, partQ);
+title('partie Q modulée par un cosinus')
 
+subplot(428);
+plot(t, partI);
+title('partie I modulée par un cosinus')
+
+Y = fft(partQ);
+
+P2 = abs(Y/N);
+P1 = P2(1:N/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
+
+f = fe*(0:(N/2))/N;
+figure
+subplot(211);
+plot(f,P1)
+title('Single-Sided Amplitude Spectrum of partQ(t)')
+xlabel('f (Hz)')
+ylabel('|P1(f)|')
+
+
+Y = fft(signal);
+
+P2 = abs(Y/N);
+P1 = P2(1:N/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
+
+f = fe*(0:(N/2))/N;
+subplot(212);
+plot(f,P1)
+title('Single-Sided Amplitude Spectrum of signal(t)')
+xlabel('f (Hz)')
+ylabel('|P1(f)|')

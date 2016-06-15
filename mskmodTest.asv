@@ -1,26 +1,26 @@
 %% ParamÃ¨tres initiaux
-nbSymbols= 10  ; % NB de symboles Ã  transmettre
+nbSymbols= 30  ; % NB de symboles Ã  transmettre
 
-symbols = randi([0 1],nbSymbols,1);
+symbols = randi([0 1],nbSymbols,1); %générations des symboles aléatoires
 
-fe = 1000;      % FrÃ©quence des échantillons: On a 1000 echantillons par secondes
+fe = 10000;      % FrÃ©quence des échantillons: On a 1000 echantillons par secondes
 
 %% Modulation
 % GÃ©nÃ©ration d'un sinus et ajout d'un bruit blanc Gaussien
 
 %Paramètres de la modulation
-fc = 100;% frÃ©quence centrale 
-fd = 10; %fréquence de déviation
+fc = 500;% frÃ©quence centrale 
+fd = 100; %fréquence de déviation
 
 %Paramètres de calculs
 fm = 2*fd;       % nombre de bit par secondes par channel
-N = (nbSymbols/2)*(fe/fm);       % Nombre d'échantillons dans chaque voie
+N = (nbSymbols)*(fix(fe/fm/2));       % Nombre d'échantillons dans chaque voie
 
 % Axe des temps
 t = (1:N)/fe;
 
 % Génération des cosinus et sinus surrélevés
-rootRaised = mskmod(symbols,fe/fm/2,[],pi/2);
+rootRaised = mskmod(symbols,fix(fe/fm/2),[],pi/2);
 
 % GÃ©nÃ©ration du sinus pour les coeffs
 
@@ -50,40 +50,65 @@ spectre = abs(fft(cosPorteuse));
 
 %% Plot
 
-subplot(421);
+subplot(521);
 plot(symbols,'bs');
+title('Generated symbols')
 xlabel('Symboles : bits input')
 
-subplot(424);
+subplot(522);
+plot(t, signal);
+title('Signal modulé')
+xlabel('seconds')
+
+subplot(523);
+plot(t, real(rootRaised));
+title('Partie réelle (Q)')
+xlabel('seconds')
+
+subplot(524);
+plot(t, imag(rootRaised));
+title('Partie imaginaire (I)')
+xlabel('seconds')
+
+subplot(525);
 plot(t, cosPorteuse);
 xlabel('cosPorteuse')
 
-subplot(422);
-plot(t, real(rootRaised));
-xlabel('Partie réelle : coeff ak ?')
+subplot(526);
+plot(t, sinPorteuse);
+title('sinPorteuse')
 
-subplot(423);
+subplot(527);
 plot(t, partQ);
-xlabel('partie Q modulÃ©e')
+title('partie Q modulée par un cosinus')
 
-subplot(425);
-plot(t, signal);
-xlabel('Signal modulÃ©')
+subplot(528);
+plot(t, partI);
+title('partie I modulée par un cosinus')
+
+Y = fft(partQ);
+
+P2 = abs(Y/N);
+P1 = P2(1:N/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
+
+f = fe*(0:(N/2))/N;
+subplot(529);
+plot(f,P1)
+title('Single-Sided Amplitude Spectrum of partQ(t)')
+xlabel('f (Hz)')
+ylabel('|P1(f)|')
 
 
-L = N ;
-f = fe*(0:(L/2))/L;
-fft1Signal = abs(fft(cosPorteuse));
-fft2Signal = fft1Signal(1:L/2+1);
+Y = fft(signal);
 
-fft1PartQ = abs(fft(partQ));
-fft2PartQ = fft1Signal(1:L/2+1);
+P2 = abs(Y/N);
+P1 = P2(1:N/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
 
-subplot(426);
-plot(f,fft2PartQ);
-xlabel('fft de partQ')
-
-subplot(427);
-plot(f,fft2Signal);
-xlabel('fft du signal modulé')
-
+f = fe*(0:(N/2))/N;
+subplot(527);
+plot(f,P1)
+title('Single-Sided Amplitude Spectrum of signal(t)')
+xlabel('f (Hz)')
+ylabel('|P1(f)|')
