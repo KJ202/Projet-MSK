@@ -1,7 +1,7 @@
 %% ParamÃ¨tres initiaux
-nbSymbols= 20  ; % NB de symboles Ã  transmettre
+nbSymbols= 10  ; % NB de symboles Ã  transmettre
 
-symbols = randi([0 1],nbSymbols,1); %générations des symboles aléatoires
+symbols = randi([0 1],nbSymbols,1);
 
 fe = 1000;      % FrÃ©quence des échantillons: On a 1000 echantillons par secondes
 
@@ -10,17 +10,17 @@ fe = 1000;      % FrÃ©quence des échantillons: On a 1000 echantillons par second
 
 %Paramètres de la modulation
 fc = 100;% frÃ©quence centrale 
-fd = 20; %fréquence de déviation
+fd = 10; %fréquence de déviation
 
 %Paramètres de calculs
 fm = 2*fd;       % nombre de bit par secondes par channel
-N = (nbSymbols)*(fix(fe/fm/2));       % Nombre d'échantillons dans chaque voie
+N = (nbSymbols/2)*(fe/fm);       % Nombre d'échantillons dans chaque voie
 
 % Axe des temps
 t = (1:N)/fe;
 
 % Génération des cosinus et sinus surrélevés
-rootRaised = mskmod(symbols,fix(fe/fm/2),[],pi/2);
+rootRaised = mskmod(symbols,fe/fm/2,[],pi/2);
 
 % GÃ©nÃ©ration du sinus pour les coeffs
 
@@ -73,11 +73,11 @@ xlabel('Signal modulÃ©')
 
 L = N ;
 f = fe*(0:(L/2))/L;
-fft1Signal = abs(fft(signal));
+fft1Signal = abs(fft(cosPorteuse));
 fft2Signal = fft1Signal(1:L/2+1);
 
 fft1PartQ = abs(fft(partQ));
-fft2PartQ = fft1PartQ(1:L/2+1);
+fft2PartQ = fft1Signal(1:L/2+1);
 
 subplot(426);
 plot(f,fft2PartQ);
