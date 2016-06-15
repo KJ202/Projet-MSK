@@ -1,5 +1,5 @@
 %% ParamÃ¨tres initiaux
-nbSymbols= 30  ; % NB de symboles Ã  transmettre
+nbSymbols= 50  ; % NB de symboles Ã  transmettre
 
 symbols = randi([0 1],nbSymbols,1); %générations des symboles aléatoires
 
@@ -10,11 +10,14 @@ fe = 10000;      % FrÃ©quence des échantillons: On a 1000 echantillons par secon
 
 %Paramètres de la modulation
 fc = 500;% frÃ©quence centrale 
-fd = 100; %fréquence de déviation
+fd = 200; %fréquence de déviation
+dfc = fc/100; %frequency offset
 
 %Paramètres de calculs
 fm = 2*fd;       % nombre de bit par secondes par channel
 N = (nbSymbols)*(fix(fe/fm/2));       % Nombre d'échantillons dans chaque voie
+k = (1:N)/10 + ones(1,N)
+
 
 % Axe des temps
 t = (1:N)/fe;
@@ -23,15 +26,16 @@ t = (1:N)/fe;
 rootRaised = mskmod(symbols,fix(fe/fm/2),[],pi/2);
 
 % GÃ©nÃ©ration du sinus pour les coeffs
-
-sinPorteuse = sin(2*pi* fc *t);
-cosPorteuse = cos(2*pi* fc *t);
+sinPorteuse = sin(2*pi* (fc+k*dfc) .*t);
+cosPorteuse = cos(2*pi* (fc+k*dfc) .*t);
 
 partI = sinPorteuse .* imag(rootRaised)' ;   % multiplication element par element
 partQ = cosPorteuse .* real(rootRaised)' ;
 
-signal = partI + partQ ;
-%s=awgn(signal,10);
+s = partI + partQ ;
+signal=awgn(s,20); %Ajout d'un bruit gaussien
+
+
 %% DÃ©modulation
 
 demodI = signal .* sinPorteuse ;
@@ -42,8 +46,6 @@ resI = filter(b,1,demodI);
 resQ = filter(b,1,demodQ);
 
 resSum = resQ + j*resI ;
-%z = mskdemod(resSum,nsamp,[],pi/2);
-
 %% FFT
 
 spectre = abs(fft(cosPorteuse));
@@ -82,30 +84,47 @@ subplot(428);
 plot(t, partI);
 title('partie I modulée par un cosinus')
 
-Y = fft(partQ);
-
-P2 = abs(Y/N);
-P1 = P2(1:N/2+1);
-P1(2:end-1) = 2*P1(2:end-1);
-
-f = fe*(0:(N/2))/N;
 figure
-subplot(211);
-plot(f,P1)
-title('Single-Sided Amplitude Spectrum of partQ(t)')
-xlabel('f (Hz)')
-ylabel('|P1(f)|')
+subplot(222);
+plot(t, demodI);
+title('Signal recu * sinPorteuse');
+
+subplot(221);
+plot(t, demodQ);
+title('Signal recu * cosPorteuse');
+
+subplot(224);
+plot(t, resI);
+title('Channel I en reception après filtrage');
+
+subplot(223);
+plot(t, resQ);
+title('Channel Q en reception après filtrage');
+
+% Pour tracer la FFT
+
+% Y = fft(partQ);
+% P2 = abs(Y/N);
+% P1 = P2(1:N/2+1);
+% P1(2:end-1) = 2*P1(2:end-1);
+% f = fe*(0:(N/2))/N;
+% figure
+% subplot(211);
+% plot(f,P1)
+% title('Single-Sided Amplitude Spectrum of partQ(t)')
+% xlabel('f (Hz)')
+% ylabel('|P1(f)|')
+% 
+% 
+% Y = fft(signal);
+% P2 = abs(Y/N);
+% P1 = P2(1:N/2+1);
+% P1(2:end-1) = 2*P1(2:end-1);
+% f = fe*(0:(N/2))/N;
+% subplot(212);
+% plot(f,P1)
+% title('Single-Sided Amplitude Spectrum of signal(t)')
+% xlabel('f (Hz)')
+% ylabel('|P1(f)|')
 
 
-Y = fft(signal);
-
-P2 = abs(Y/N);
-P1 = P2(1:N/2+1);
-P1(2:end-1) = 2*P1(2:end-1);
-
-f = fe*(0:(N/2))/N;
-subplot(212);
-plot(f,P1)
-title('Single-Sided Amplitude Spectrum of signal(t)')
-xlabel('f (Hz)')
-ylabel('|P1(f)|')
