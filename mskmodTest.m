@@ -1,5 +1,5 @@
 %% ParamÃ¨tres initiaux
-nbSymbols= 50  ; % NB de symboles Ã  transmettre
+nbSymbols= 30  ; % NB de symboles Ã  transmettre
 
 symbols = randi([0 1],nbSymbols,1); %générations des symboles aléatoires
 
@@ -16,7 +16,7 @@ dfc = fc/100; %frequency offset
 %Paramètres de calculs
 fm = 2*fd;       % nombre de bit par secondes par channel
 N = (nbSymbols)*(fix(fe/fm/2));       % Nombre d'échantillons dans chaque voie
-k = (1:N)/10 + ones(1,N)
+k = (1:N)/(N*fc/100) + ones(1,N)
 
 
 % Axe des temps
