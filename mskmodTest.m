@@ -1,16 +1,16 @@
 %% ParamÃ¨tres initiaux
-nbSymbols= 30  ; % NB de symboles Ã  transmettre
+nbSymbols= 10  ; % NB de symboles Ã  transmettre
 
 symbols = randi([0 1],nbSymbols,1); %générations des symboles aléatoires
 
-fe = 10000;      % FrÃ©quence des échantillons: On a 1000 echantillons par secondes
+fe = 2457600000;      % FrÃ©quence des échantillons: On a 1000 echantillons par secondes
 
 %% Modulation
 % GÃ©nÃ©ration d'un sinus et ajout d'un bruit blanc Gaussien
 
 %Paramètres de la modulation
-fc = 500;% frÃ©quence centrale 
-fd = 200; %fréquence de déviation
+fc = 433000000;% frÃ©quence centrale 
+fd = 600000; %fréquence de déviation
 dfc = fc/100; %frequency offset
 
 %Paramètres de calculs
@@ -33,7 +33,7 @@ partI = sinPorteuse .* imag(rootRaised)' ;   % multiplication element par elemen
 partQ = cosPorteuse .* real(rootRaised)' ;
 
 s = partI + partQ ;
-signal=awgn(s,20); %Ajout d'un bruit gaussien
+signal=awgn(s,5); %Ajout d'un bruit gaussien
 
 
 %% DÃ©modulation
@@ -41,7 +41,8 @@ signal=awgn(s,20); %Ajout d'un bruit gaussien
 demodI = signal .* sinPorteuse ;
 demodQ = signal .* cosPorteuse ;
 
-b = [1/10 1/10 1/10 1/10 1/10 1/10 1/10 1/10 1/10 1/10];
+b = ones(1,150)*(1/100);
+%b = [1/10 1/10 1/10 1/10 1/10 1/10 1/10 1/10 1/10 1/10];
 resI = filter(b,1,demodI);
 resQ = filter(b,1,demodQ);
 
