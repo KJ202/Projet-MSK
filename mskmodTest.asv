@@ -1,9 +1,9 @@
 %% ParamÃ¨tres initiaux
-nbSymbols= 100  ; % NB de symboles Ã  transmettre
+nbSymbols= 10  ; % NB de symboles Ã  transmettre
 
 symbols = randi([0 1],nbSymbols,1); %générations des symboles aléatoires
 
-fe = 2457600000;      % FrÃ©quence des échantillons. Calculé pour avoir 4096 échantillons par symboles
+fe = 2457600000;      % FrÃ©quence des échantillons. Calculé pour avoir 2048 échantillons par symboles
 
 %% Modulation
 % GÃ©nÃ©ration d'un sinus et ajout d'un bruit blanc Gaussien
@@ -11,13 +11,11 @@ fe = 2457600000;      % FrÃ©quence des échantillons. Calculé pour avoir 4096 éch
 %Paramètres de la modulation
 fc = 433000000;% frÃ©quence centrale 
 fd = 600000; %fréquence de déviation
-dfc = fc/100; %frequency offset
+dfc = fd/200; %frequency offset
 
 %Paramètres de calculs
 fm = 2*fd;       % nombre de bit par secondes par channel
 N = (nbSymbols)*(fix(fe/fm/2));       % Nombre d'échantillons dans chaque voie
-k = (1:N)/(N*fc/100) + ones(1,N)
-
 
 % Axe des temps
 t = (1:N)/fe;
@@ -26,20 +24,24 @@ t = (1:N)/fe;
 rootRaised = mskmod(symbols,fix(fe/fm/2),[],pi/2);
 
 % GÃ©nÃ©ration du sinus pour les coeffs
-sinPorteuse = sin(2*pi* (fc+k*dfc) .*t);
-cosPorteuse = cos(2*pi* (fc+k*dfc) .*t);
+sinPorteuse1 = sin(2*pi* fc .*t);
+cosPorteuse1 = cos(2*pi* fc .*t);
 
-partI = sinPorteuse .* imag(rootRaised)' ;   % multiplication element par element
-partQ = cosPorteuse .* real(rootRaised)' ;
+partI = sinPorteuse1 .* imag(rootRaised)' ;   % multiplication element par element
+partQ = cosPorteuse1 .* real(rootRaised)' ;
 
 s = partI + partQ ;
-signal=awgn(s,5); %Ajout d'un bruit gaussien
+signal=awgn(s,1); %Ajout d'un bruit gaussien
 
 
 %% DÃ©modulation
+k = (1:N)/(N*fc/200) + ones(1,N)
 
-demodI = signal .* sinPorteuse ;
-demodQ = signal .* cosPorteuse ;
+sinPorteuse2 = sin(2*pi* (fc+k*dfc) .*t); %décalage en fréquence introduit dans la démodulation
+cosPorteuse2 = cos(2*pi* (fc+k*dfc) .*t); %décalage en fréquence introduit dans la démodulation
+
+demodI = signal .* sinPorteuse2 ;
+demodQ = signal .* cosPorteuse2 ;
 
 b = ones(1,150)*(1/100);
 %b = [1/10 1/10 1/10 1/10 1/10 1/10 1/10 1/10 1/10 1/10];
@@ -47,9 +49,17 @@ resI = filter(b,1,demodI);
 resQ = filter(b,1,demodQ);
 
 resSum = resQ + j*resI ;
-%% FFT
 
-spectre = abs(fft(cosPorteuse));
+%% Premiere étape de la démodulation
+
+resQAbs=abs(vec2mat(resQ,2048));
+resIAbs=abs(vec2mat(resI,2048));
+resAbs=resQAbs+j*resIAbs;
+res=filter(b,1,resAbs);
+maxI=max(resIAbs);
+maxQ=max(resQAbs);
+
+%% FF
 
 %% Plot
 
@@ -95,11 +105,11 @@ plot(t, demodQ);
 title('Signal recu * cosPorteuse');
 
 subplot(224);
-plot(t, resI);
+plot(resI);
 title('Channel I en reception après filtrage');
 
 subplot(223);
-plot(t, resQ);
+plot(resQ);
 title('Channel Q en reception après filtrage');
 
 % Pour tracer la FFT
