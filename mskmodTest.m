@@ -1,26 +1,26 @@
 %% ParamÃ¨tres initiaux
-nbSymbols= 200 % nombre de symboles Ã  transmettre
+nbSymbols= 200 ;% nombre de symboles Ã  transmettre
 
-symbols = randi([0 1],nbSymbols,1); %générations des symboles aléatoires
+symbols = randi([0 1],nbSymbols,1); %gï¿½nï¿½rations des symboles alï¿½atoires
 
-fe = 2457600000;      % FrÃ©quence des échantillons. Calculé pour avoir 2048 échantillons par symboles
+fe = 2457600000;      % FrÃ©quence des ï¿½chantillons. Calculï¿½ pour avoir 2048 ï¿½chantillons par symboles
 
 %% Modulation
 % GÃ©nÃ©ration d'un sinus et ajout d'un bruit blanc Gaussien
 
-%Paramètres de la modulation
+%Paramï¿½tres de la modulation
 fc = 433000000;% frÃ©quence centrale 
-fd = 600000; %fréquence de déviation
+fd = 600000; %frï¿½quence de dï¿½viation
 dfc = fd/100 ; %frequency offset
 
-%Paramètres de calculs
+%Paramï¿½tres de calculs
 fm = 2*fd;       % nombre de bit par secondes par channel
-N = (nbSymbols)*(fix(fe/fm/2));       % Nombre d'échantillons dans chaque voie
+N = (nbSymbols)*(fix(fe/fm/2));       % Nombre d'ï¿½chantillons dans chaque voie
 
 % Axe des temps
 t = (1:N)/fe;
 
-% Génération des cosinus et sinus surrélevés
+% Gï¿½nï¿½ration des cosinus et sinus surrï¿½levï¿½s
 rootRaised = mskmod(symbols,fix(fe/fm/2),[],pi/2);
 
 % GÃ©nÃ©ration du sinus pour les coeffs
@@ -32,13 +32,31 @@ partQ = cosPorteuse1 .* real(rootRaised)' ;
 
 s = partI + partQ ;
 signal=awgn(s,100); %Ajout d'un bruit gaussien
+signal
 
+Nb_echantillons=2048;
+lengthSignal = size(signal);
+A=[];
+for k=1:(lengthSignal(2)/Nb_echantillons)
+    for i=1:Nb_echantillons
+        A(k,i)=signal((k-1)*Nb_echantillons+i);
+    end
+end
+lengthColumn = size(A(:,1));
+
+for k=1:lengthColumn(1)
+    for i=1:Nb_echantillons
+        A(k,i)=A(k,i)*A(k,i);
+        A(k,i)=A(k,i)*exp(2i*pi/2*(k+i/Nb_echantillons));
+       
+    end        
+end
 
 %% DÃ©modulation
 k = ((1:N)*(0.5/N)) + (ones(1,N)*0.5);
 
-sinPorteuse2 = sin(2*pi* (fc+k*dfc) .*t); %décalage en fréquence introduit dans la démodulation
-cosPorteuse2 = cos(2*pi* (fc+k*dfc) .*t); %décalage en fréquence introduit dans la démodulation
+sinPorteuse2 = sin(2*pi* (fc+k*dfc) .*t); %dï¿½calage en frï¿½quence introduit dans la dï¿½modulation
+cosPorteuse2 = cos(2*pi* (fc+k*dfc) .*t); %dï¿½calage en frï¿½quence introduit dans la dï¿½modulation
 
 demodI = signal .* sinPorteuse2 ;
 demodQ = signal .* cosPorteuse2 ;
@@ -49,11 +67,11 @@ resQ = filter(b,1,demodQ);
 
 resSum = resQ + j*resI ;
 
-%% Premiere étape de la démodulation
+%% Premiere ï¿½tape de la dï¿½modulation
 
-c = ones(1,10)*(1/10); %filtre à 10 coefficient
+c = ones(1,10)*(1/10); %filtre ï¿½ 10 coefficient
 
-resI = [zeros(1, 1024) resI]; %Décalage de la voie I
+resI = [zeros(1, 1024) resI]; %Dï¿½calage de la voie I
 
 resQAbs=abs(vec2mat(resQ,2048));
 resIAbs=abs(vec2mat(resI,2048));
@@ -64,8 +82,8 @@ resQAbs=filter(c,1,resQAbs);
 
 [maxI, maxIpos]=max(resIAbs');
 [maxQ, maxQpos]=max(resQAbs');
-maxIpos
-maxQpos
+maxI
+maxQ
 
 %% Plot
 
@@ -75,11 +93,11 @@ title('Generated symbols')
 
 subplot(422);
 plot(t, signal);
-title('Signal modulé')
+title('Signal modulï¿½')
 
 subplot(421);
 plot( real(rootRaised));
-title('Partie réelle (Q)')
+title('Partie rï¿½elle (Q)')
 
 subplot(422);
 plot(imag(rootRaised));
@@ -95,11 +113,11 @@ title('sinPorteuse')
 
 subplot(427);
 plot(t, partQ);
-title('partie Q modulée par un cosinus')
+title('partie Q modulï¿½e par un cosinus')
 
 subplot(428);
 plot(t, partI);
-title('partie I modulée par un cosinus')
+title('partie I modulï¿½e par un cosinus')
 
 subplot(428);
 plot(resQAbs);
@@ -111,11 +129,11 @@ title('resIAbs');
 
 subplot(424);
 plot(resI);
-title('Channel I en reception après filtrage');
+title('Channel I en reception aprï¿½s filtrage');
 
 subplot(423);
 plot(resQ);
-title('Channel Q en reception après filtrage');
+title('Channel Q en reception aprï¿½s filtrage');
 
 subplot(425);
 plot(maxQ);
