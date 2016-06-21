@@ -1,0 +1,171 @@
+%% ParamÃ¨tres initiaux
+nbSymbols= 200 % nombre de symboles Ã  transmettre
+
+symbols = randi([0 1],nbSymbols,1); %générations des symboles aléatoires
+
+fe = 2457600000;      % FrÃ©quence des échantillons. Calculé pour avoir 2048 échantillons par symboles
+
+%% Modulation
+% GÃ©nÃ©ration d'un sinus et ajout d'un bruit blanc Gaussien
+
+%Paramètres de la modulation
+fc = 433000000;% frÃ©quence centrale 
+fd = 600000; %fréquence de déviation
+dfc = fc/80000 ; %frequency offset --> Fait tout planter!
+
+%Paramètres de calculs
+fm = 2*fd;       % nombre de bit par secondes par channel
+N = (nbSymbols)*(fix(fe/fm/2));       % Nombre d'échantillons dans chaque voie
+
+% Axe des temps
+t = (1:N)/fe;
+
+% Génération des cosinus et sinus surrélevés
+rootRaised = mskmod(symbols,fix(fe/fm/2),[],pi/2);
+
+% GÃ©nÃ©ration du sinus pour les coeffs
+% sinPorteuse1 = sin(2*pi* fc .*t);
+% cosPorteuse1 = cos(2*pi* fc .*t);
+
+Porteuse1=exp(1i * 2 * pi * fc .* t);
+
+% partI = sinPorteuse1 .* imag(rootRaised)' ;   % multiplication element par element
+% partQ = cosPorteuse1 .* real(rootRaised)' ;
+
+s = Porteuse1 .* rootRaised';
+
+%s = partI + partQ ;
+s= real(s) + imag(s);
+signal=awgn(s,100); %Ajout d'un bruit gaussien
+
+
+%% DÃ©modulation
+%k = ((1:N)*(0.5/N)) + (ones(1,N)*0.5);
+
+% sinPorteuse2 = sin(2*pi* (fc+dfc) .*t); %décalage en fréquence introduit dans la démodulation
+% cosPorteuse2 = cos(2*pi* (fc+dfc) .*t); %décalage en fréquence introduit dans la démodulation
+
+Porteuse2 = exp(1i * 2 * pi * (fc) .* t);
+
+% demodI = signal .* sinPorteuse2 ;
+% demodQ = signal .* cosPorteuse2 ;
+
+demod = signal .* Porteuse2;
+
+e = demod.^2;
+
+b = ones(1,150)*(1/100);
+% resI = filter(b,1,demodI);
+% resQ = filter(b,1,demodQ);
+
+res = filter(b,1,e);
+
+resI = imag(res);
+resQ= real(res);
+% resSum = resQ + j*resI ;
+
+%% Premiere étape de la démodulation
+
+c = ones(1,10)*(1/10); %filtre à 10 coefficient
+
+resI = [zeros(1, 1024) resI]; %Décalage de la voie I
+
+resQAbs=abs(vec2mat(resQ,2048));
+resIAbs=abs(vec2mat(resI,2048));
+
+resIAbs=filter(c,1,resIAbs);
+resQAbs=filter(c,1,resQAbs);
+
+
+[maxI, maxIpos]=max(resIAbs');
+[maxQ, maxQpos]=max(resQAbs');
+maxIpos
+maxQpos
+
+%% Plot
+
+subplot(421);
+plot(symbols,'bs');
+title('Generated symbols')
+
+subplot(422);
+plot(t,real(signal));
+title('Signal modulé')
+
+subplot(421);
+plot( real(rootRaised));
+title('Partie réelle (Q)')
+
+subplot(422);
+plot(imag(rootRaised));
+title('Partie imaginaire (I)')
+
+% subplot(425);
+% plot(t, cosPorteuse1);
+% title('cosPorteuse')
+% 
+% subplot(426);
+% plot(t, sinPorteuse1);
+% title('sinPorteuse')
+% 
+% subplot(427);
+% plot(t, partQ);
+% title('partie Q modulée par un cosinus')
+% 
+% subplot(428);
+% plot(t, partI);
+% title('partie I modulée par un cosinus')
+
+subplot(428);
+plot(resQAbs);
+title('resQAbs');
+
+subplot(427);
+plot(resIAbs);
+title('resIAbs');
+
+subplot(424);
+plot(resI);
+title('Channel I en reception après filtrage');
+
+subplot(423);
+plot(resQ);
+title('Channel Q en reception après filtrage');
+
+subplot(425);
+plot(maxQ);
+title('maxQ');
+axis([0 inf 0 0.8]);
+
+subplot(426);
+plot(maxI);
+title('MaxI');
+axis([0 inf 0 0.8]);
+
+% Pour tracer la FFT
+
+% Y = fft(partQ);
+% P2 = abs(Y/N);
+% P1 = P2(1:N/2+1);
+% P1(2:end-1) = 2*P1(2:end-1);
+% f = fe*(0:(N/2))/N;
+% figure
+% subplot(211);
+% plot(f,P1)
+% title('Single-Sided Amplitude Spectrum of partQ(t)')
+% xlabel('f (Hz)')
+% ylabel('|P1(f)|')
+% 
+% 
+% Y = fft(signal);
+% P2 = abs(Y/N);
+% P1 = P2(1:N/2+1);
+% P1(2:end-1) = 2*P1(2:end-1);
+% f = fe*(0:(N/2))/N;
+% subplot(212);
+% plot(f,P1)
+% title('Single-Sided Amplitude Spectrum of signal(t)')
+% xlabel('f (Hz)')
+% ylabel('|P1(f)|')
+
+
