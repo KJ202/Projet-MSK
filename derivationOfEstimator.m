@@ -2,52 +2,39 @@
 %@signal z(k,i) given by Guirec Poulennec
 %returns the sampler e(i,k)
 
-function f = derivationOfEstimator(z)
+function f = derivationOfEstimator(signal)
 %derivationOfEstimator(z) makes a treatment on the signal z
 %@z the signal given to the function.
 
-A=[];
-lengthSignal = size(z);
-A = matrixing(z,lengthSignal);
-%disp(A);
+N=2048;
+lengthSignal = size(signal);
+A = matrixing(signal,lengthSignal);
+
 lengthColumn = size(A(:,1));
 
 for k=1:lengthColumn(1)
-    for i=1:16
+    for i=1:N
         A(k,i)=squarred(A(k,i));
-        A(k,i)=A(k,i)*(-1)^(k+1);
+        A(k,i)=A(k,i)*exp(2i*pi/2*(k+i/N));
+       
     end        
 end
 f = A;
-
 
 function g = squarred(z)
 %squarred(x) returns x²
 %@x the signal given.
 g = z*z;
 
-function h = matrixing(z,l)
+function h = matrixing(signal,lengthSignal)
 %shinfting(y) return the signal shifted.
 %@y the signal given
 %@i the sample
-
+N=2048;
 A=[];
-for k=1:(l(1)/16)
-    for i=1:16
-        A(k,i)=z((k-1)*16+i);
-    end;
+for k=1:(lengthSignal(2)/N)
+    for i=1:N
+        A(k,i)=signal((k-1)*N+i);
+    end
 end
 h=A;
-
-    
-
-
-
-
-
-
-
-
-
-
-
